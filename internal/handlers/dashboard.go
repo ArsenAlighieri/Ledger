@@ -149,7 +149,7 @@ func (h *DashboardHandler) DashboardView(w http.ResponseWriter, r *http.Request)
 		_ = h.snapshot.RecordDailySnapshot(r.Context(), settings.BaseCurrency)
 	}()
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "dashboard", map[string]any{
 		"Title":          "Genel Bakış",
 		"ActiveNav":      "dashboard",
 		"ShowNav":        true,

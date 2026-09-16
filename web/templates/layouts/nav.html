@@ -1,3 +1,4 @@
+{{define "nav"}}
 <!-- Desktop Header Nav -->
 <header class="border-b border-dark-border bg-dark-bg/80 backdrop-blur sticky top-0 z-30">
   <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -86,3 +87,9 @@
     <span>Ayarlar</span>
   </a>
 </nav>
+{{end}}
+
+{{define "nav.html"}}
+{{template "nav" .}}
+{{end}}
+

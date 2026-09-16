@@ -51,7 +51,7 @@ func (h *SettingsHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 
 	msg := r.URL.Query().Get("msg")
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "settings", map[string]any{
 		"Title":     "Ayarlar",
 		"ActiveNav": "settings",
 		"ShowNav":   true,

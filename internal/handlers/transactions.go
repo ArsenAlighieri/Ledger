@@ -58,7 +58,7 @@ func (h *TransactionsHandler) IndexView(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "transactions", map[string]any{
 		"Title":               "İşlemler",
 		"ActiveNav":           "transactions",
 		"ShowNav":             true,

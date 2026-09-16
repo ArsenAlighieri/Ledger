@@ -30,7 +30,7 @@ func (h *AuthHandler) LoginView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "login", map[string]any{
 		"Title":     "Giriş Yap",
 		"ShowNav":   false,
 		"CSRFToken": GetCSRFToken(r),
@@ -40,7 +40,7 @@ func (h *AuthHandler) LoginView(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) LoginAction(w http.ResponseWriter, r *http.Request) {
 	ip := strings.Split(r.RemoteAddr, ":")[0]
 	if !h.limiter.Allow(ip) {
-		h.renderer.Render(w, "base.html", map[string]any{
+		h.renderer.Render(w, "login", map[string]any{
 			"Title":     "Giriş Yap",
 			"ShowNav":   false,
 			"CSRFToken": GetCSRFToken(r),
@@ -57,7 +57,7 @@ func (h *AuthHandler) LoginAction(w http.ResponseWriter, r *http.Request) {
 	err := h.db.QueryRow("SELECT id, password_hash FROM users WHERE username = ?", username).Scan(&userID, &hash)
 	if err != nil {
 		h.limiter.RecordFailure(ip)
-		h.renderer.Render(w, "base.html", map[string]any{
+		h.renderer.Render(w, "login", map[string]any{
 			"Title":     "Giriş Yap",
 			"ShowNav":   false,
 			"CSRFToken": GetCSRFToken(r),
@@ -69,7 +69,7 @@ func (h *AuthHandler) LoginAction(w http.ResponseWriter, r *http.Request) {
 	valid, _ := auth.VerifyPassword(password, hash)
 	if !valid {
 		h.limiter.RecordFailure(ip)
-		h.renderer.Render(w, "base.html", map[string]any{
+		h.renderer.Render(w, "login", map[string]any{
 			"Title":     "Giriş Yap",
 			"ShowNav":   false,
 			"CSRFToken": GetCSRFToken(r),
@@ -97,7 +97,7 @@ func (h *AuthHandler) RegisterView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "register", map[string]any{
 		"Title":     "İlk Kurulum — Yönetici Hesabı",
 		"ShowNav":   false,
 		"CSRFToken": GetCSRFToken(r),
@@ -117,7 +117,7 @@ func (h *AuthHandler) RegisterAction(w http.ResponseWriter, r *http.Request) {
 	confirm := r.FormValue("password_confirm")
 
 	if username == "" || len(password) < 6 {
-		h.renderer.Render(w, "base.html", map[string]any{
+		h.renderer.Render(w, "register", map[string]any{
 			"Title":     "İlk Kurulum — Yönetici Hesabı",
 			"ShowNav":   false,
 			"CSRFToken": GetCSRFToken(r),
@@ -127,7 +127,7 @@ func (h *AuthHandler) RegisterAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if password != confirm {
-		h.renderer.Render(w, "base.html", map[string]any{
+		h.renderer.Render(w, "register", map[string]any{
 			"Title":     "İlk Kurulum — Yönetici Hesabı",
 			"ShowNav":   false,
 			"CSRFToken": GetCSRFToken(r),

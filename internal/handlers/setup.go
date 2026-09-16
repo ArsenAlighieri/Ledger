@@ -78,9 +78,9 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 	// Step-specific data gathering
 	switch step {
 	case 1:
-		h.renderer.Render(w, "step1_welcome.html", data)
+		h.renderer.Render(w, "setup_step1", data)
 	case 2:
-		h.renderer.Render(w, "step2_preferences.html", data)
+		h.renderer.Render(w, "setup_step2", data)
 	case 3:
 		accounts, _, _, _ := h.finance.GetUserAccounts(ctx, settings.BaseCurrency)
 		var bankAndCash []models.Account
@@ -90,7 +90,7 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		data["Accounts"] = bankAndCash
-		h.renderer.Render(w, "step3_accounts.html", data)
+		h.renderer.Render(w, "setup_step3", data)
 	case 4:
 		accounts, _, _, _ := h.finance.GetUserAccounts(ctx, settings.BaseCurrency)
 		var foreign []models.Account
@@ -109,27 +109,27 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 		data["EURRate"] = eurRate.Rate.StringFixed(4)
 		data["GBPRate"] = gbpRate.Rate.StringFixed(4)
 
-		h.renderer.Render(w, "step4_currencies.html", data)
+		h.renderer.Render(w, "setup_step4", data)
 	case 5:
 		debts, _, _, _ := h.finance.GetUserDebts(ctx)
 		data["Debts"] = debts
-		h.renderer.Render(w, "step5_debts.html", data)
+		h.renderer.Render(w, "setup_step5", data)
 	case 6:
-		h.renderer.Render(w, "step6_income.html", data)
+		h.renderer.Render(w, "setup_step6", data)
 	case 7:
-		h.renderer.Render(w, "step7_expenses.html", data)
+		h.renderer.Render(w, "setup_step7", data)
 	case 8:
-		h.renderer.Render(w, "step8_subscriptions.html", data)
+		h.renderer.Render(w, "setup_step8", data)
 	case 9:
 		positions, _, _ := h.finance.GetUserPositions(ctx, settings.BaseCurrency)
 		data["Positions"] = positions
-		h.renderer.Render(w, "step9_investments.html", data)
+		h.renderer.Render(w, "setup_step9", data)
 	case 10:
 		accounts, _, _, _ := h.finance.GetUserAccounts(ctx, settings.BaseCurrency)
 		positions, _, _ := h.finance.GetUserPositions(ctx, settings.BaseCurrency)
 		data["Accounts"] = accounts
 		data["Positions"] = positions
-		h.renderer.Render(w, "step10_emergency.html", data)
+		h.renderer.Render(w, "setup_step10", data)
 	case 11:
 		accounts, cashBank, foreign, _ := h.finance.GetUserAccounts(ctx, settings.BaseCurrency)
 		_, currentDebt, _, _ := h.finance.GetUserDebts(ctx)
@@ -147,9 +147,9 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 			InvestmentsBase:     investBase,
 		}
 		data["Accounts"] = accounts
-		h.renderer.Render(w, "step11_review.html", data)
+		h.renderer.Render(w, "setup_step11", data)
 	default:
-		h.renderer.Render(w, "step1_welcome.html", data)
+		h.renderer.Render(w, "setup_step1", data)
 	}
 }
 

@@ -43,7 +43,7 @@ func (h *RecurringHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "recurring", map[string]any{
 		"Title":         "Düzenli Ödemeler & Gelirler",
 		"ActiveNav":     "recurring",
 		"ShowNav":       true,

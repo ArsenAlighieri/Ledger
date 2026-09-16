@@ -59,7 +59,7 @@ func (h *AssetsHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 		InvestmentsBase:     investBase,
 	}
 
-	h.renderer.Render(w, "base.html", map[string]any{
+	h.renderer.Render(w, "assets", map[string]any{
 		"Title":            "Varlıklar & Portföy",
 		"ActiveNav":        "assets",
 		"ShowNav":          true,
