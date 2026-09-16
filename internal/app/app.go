@@ -71,11 +71,11 @@ func (a *App) Start() error {
 	staticFS := http.FS(web.StaticFS())
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(staticFS)))
 	mux.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFileFS(w, r, web.EmbeddedFiles, "web/static/manifest.json")
+		http.ServeFileFS(w, r, web.EmbeddedFiles, "static/manifest.json")
 	})
 	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript")
-		http.ServeFileFS(w, r, web.EmbeddedFiles, "web/static/sw.js")
+		http.ServeFileFS(w, r, web.EmbeddedFiles, "static/sw.js")
 	})
 
 	// 2. Health check

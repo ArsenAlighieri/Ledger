@@ -46,14 +46,14 @@ func NewRenderer(tmplFS embed.FS) (*Renderer, error) {
 	}
 
 	tmpl, err := template.New("").Funcs(funcMap).ParseFS(tmplFS,
-		"web/templates/layouts/*.html",
-		"web/templates/auth/*.html",
-		"web/templates/setup/*.html",
-		"web/templates/dashboard/*.html",
-		"web/templates/transactions/*.html",
-		"web/templates/recurring/*.html",
-		"web/templates/assets/*.html",
-		"web/templates/settings/*.html",
+		"templates/layouts/*.html",
+		"templates/auth/*.html",
+		"templates/setup/*.html",
+		"templates/dashboard/*.html",
+		"templates/transactions/*.html",
+		"templates/recurring/*.html",
+		"templates/assets/*.html",
+		"templates/settings/*.html",
 	)
 	if err != nil {
 		return nil, err
