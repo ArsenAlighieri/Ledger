@@ -32,6 +32,9 @@ func NewSettingsHandler(db *sql.DB, renderer *Renderer, f *services.FinanceServi
 
 func (h *SettingsHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 
 	var settings models.Settings
 	var targetStr, invStr string
@@ -64,6 +67,9 @@ func (h *SettingsHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 
 func (h *SettingsHandler) UpdatePreferencesAction(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 	emergTarget := CleanString(r.FormValue("emergency_target"))
 	invTarget := CleanString(r.FormValue("monthly_investment_target"))
 

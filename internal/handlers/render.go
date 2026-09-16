@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"ledger/internal/auth"
 	"ledger/internal/models"
 
 	"github.com/shopspring/decimal"
@@ -237,12 +238,10 @@ func (r *Renderer) Render(w http.ResponseWriter, name string, data any) {
 
 // Helper to extract CSRF token from request context
 func GetCSRFToken(r *http.Request) string {
-	if val := r.Context().Value("csrf_token"); val != nil {
-		if s, ok := val.(string); ok {
-			return s
-		}
+	if s := auth.CSRFTokenFromContext(r.Context()); s != "" {
+		return s
 	}
-	cookie, err := r.Cookie("ledger_csrf")
+	cookie, err := r.Cookie(auth.CSRFCookieName)
 	if err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
@@ -251,12 +250,7 @@ func GetCSRFToken(r *http.Request) string {
 
 // Helper to extract current User ID from request context
 func GetUserID(r *http.Request) int64 {
-	if val := r.Context().Value("user_id"); val != nil {
-		if id, ok := val.(int64); ok {
-			return id
-		}
-	}
-	return 0
+	return auth.UserIDFromContext(r.Context())
 }
 
 func CurrentDate() string {

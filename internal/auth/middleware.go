@@ -14,6 +14,42 @@ type contextKey string
 const UserContextKey = contextKey("user_id")
 const CSRFContextKey = contextKey("csrf_token")
 
+// UserIDFromContext extracts authenticated user ID from context supporting both typed key and string key.
+func UserIDFromContext(ctx context.Context) int64 {
+	if ctx == nil {
+		return 0
+	}
+	if val := ctx.Value(UserContextKey); val != nil {
+		if id, ok := val.(int64); ok && id > 0 {
+			return id
+		}
+	}
+	if val := ctx.Value("user_id"); val != nil {
+		if id, ok := val.(int64); ok && id > 0 {
+			return id
+		}
+	}
+	return 0
+}
+
+// CSRFTokenFromContext extracts CSRF token from context supporting both typed key and string key.
+func CSRFTokenFromContext(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if val := ctx.Value(CSRFContextKey); val != nil {
+		if s, ok := val.(string); ok && s != "" {
+			return s
+		}
+	}
+	if val := ctx.Value("csrf_token"); val != nil {
+		if s, ok := val.(string); ok && s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
 type Middleware struct {
 	DB          *sql.DB
 	RateLimiter *RateLimiter
@@ -73,8 +109,9 @@ func (m *Middleware) AuthRequired(next http.Handler) http.Handler {
 			return
 		}
 
-		// Inject User ID into context
+		// Inject User ID into context (both typed key and string key)
 		ctx := context.WithValue(r.Context(), UserContextKey, session.UserID)
+		ctx = context.WithValue(ctx, "user_id", session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -136,6 +173,7 @@ func (m *Middleware) CSRFMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), CSRFContextKey, token)
+		ctx = context.WithValue(ctx, "csrf_token", token)
 
 		// On modifying HTTP methods, verify CSRF token
 		if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {

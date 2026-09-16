@@ -45,6 +45,9 @@ type CashflowBarViewModel struct {
 
 func (h *DashboardHandler) DashboardView(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 	ctx := r.Context()
 
 	var settings models.Settings

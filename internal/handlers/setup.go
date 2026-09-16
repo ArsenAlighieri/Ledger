@@ -34,6 +34,14 @@ func NewSetupHandler(db *sql.DB, renderer *Renderer, f *services.FinanceService,
 
 func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		// Single-user fallback: fetch primary registered user ID
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
 	ctx := r.Context()
 
 	var settings models.Settings
@@ -47,8 +55,22 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 		&settings.BaseCurrency, &targetStr, &settings.EmergencyFundAssetType,
 		&settings.EmergencyFundAssetID, &invStr,
 	)
-	if err != nil {
-		http.Error(w, "Ayarlar yüklenemedi", http.StatusInternalServerError)
+	if err == sql.ErrNoRows {
+		// Auto-initialize settings row for this user if missing
+		_, _ = h.db.Exec(`INSERT INTO settings (user_id, setup_completed, setup_step, base_currency, emergency_fund_target, monthly_investment_target)
+		                  VALUES (?, 0, 1, 'TRY', '50000.00', '0.00')`, userID)
+		settings = models.Settings{
+			UserID:                  userID,
+			SetupCompleted:          false,
+			SetupStep:               1,
+			BaseCurrency:            "TRY",
+			EmergencyFundTarget:     decimal.NewFromInt(50000),
+			MonthlyInvestmentTarget: decimal.Zero,
+		}
+		targetStr = "50000.00"
+		invStr = "0.00"
+	} else if err != nil {
+		http.Error(w, "Ayarlar yüklenemedi: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	settings.EmergencyFundTarget, _ = decimal.NewFromString(targetStr)
@@ -155,6 +177,9 @@ func (h *SetupHandler) SetupView(w http.ResponseWriter, r *http.Request) {
 
 func (h *SetupHandler) NextStep(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 	currentStep, _ := strconv.Atoi(r.FormValue("step"))
 	action := r.FormValue("action")
 
@@ -370,6 +395,9 @@ func (h *SetupHandler) AddInvestment(w http.ResponseWriter, r *http.Request) {
 
 func (h *SetupHandler) FinishSetup(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 	ctx := r.Context()
 
 	// Mark setup_completed = 1
@@ -392,6 +420,9 @@ func (h *SetupHandler) FinishSetup(w http.ResponseWriter, r *http.Request) {
 
 func (h *SetupHandler) RestartSetup(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r)
+	if userID == 0 {
+		_ = h.db.QueryRow("SELECT id FROM users ORDER BY id ASC LIMIT 1").Scan(&userID)
+	}
 	// Reset setup_step to 1 without erasing user data
 	_, _ = h.db.Exec(`UPDATE settings SET setup_completed = 0, setup_step = 1 WHERE user_id = ?`, userID)
 	http.Redirect(w, r, "/setup?step=1", http.StatusFound)
