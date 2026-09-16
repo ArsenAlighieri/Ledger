@@ -52,7 +52,7 @@ Geleneksel muhasebe yazılımlarının veya SaaS ürünlerinin karmaşıklığı
 
 ## Mimari ve Teknoloji Yığını
 
-- **Backend**: Go (Go 1.25+)
+- **Backend**: Go (Go 1.26+)
 - **Veritabanı**: SQLite (WAL modunda, CGO'suz `modernc.org/sqlite`)
 - **Frontend**: Sunucu taraflı HTML şablonları (`html/template`), HTMX, Tailwind CSS
 - **Hassas Aritmetik**: `github.com/shopspring/decimal` (Kayan nokta / IEEE-754 yuvarlama hatası yoktur)

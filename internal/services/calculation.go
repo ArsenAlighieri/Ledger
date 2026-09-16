@@ -177,7 +177,7 @@ func (s *FinanceService) GetUserPositions(ctx context.Context, baseCurrency stri
 			p.Instrument.LatestPrice = price
 			p.Instrument.QuotedAt = p.Instrument.UpdatedAt
 		} else {
-			quote, qErr := s.market.GetQuote(ctx, p.Instrument.ID, p.Instrument.Symbol, p.Instrument.Market, p.Instrument.AssetType, 30)
+			quote, qErr := s.market.GetQuote(ctx, p.Instrument.ID, p.Instrument.Symbol, p.Instrument.Market, p.Instrument.AssetType, 0)
 			if qErr == nil && !quote.Price.IsZero() {
 				price = quote.Price
 				p.Instrument.LatestPrice = quote.Price

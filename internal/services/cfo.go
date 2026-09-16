@@ -83,7 +83,12 @@ func (s *CFOService) Evaluate(
 	liquidMoney := cashBankBase.Add(foreignBase)
 
 	// Subtract protected emergency fund reserve
-	protectedReserve := currentFund
+	protectedReserve := decimal.Zero
+	// Only subtract a reserve when it is already part of liquidMoney. A position
+	// is included in investments, not cash, so subtracting it here counted it twice.
+	if settings.EmergencyFundAssetType != "position" {
+		protectedReserve = currentFund
+	}
 	if protectedReserve.GreaterThan(target) {
 		protectedReserve = target
 	}
@@ -136,10 +141,15 @@ func (s *CFOService) getRemainingRecurringExpenses(ctx context.Context) decimal.
 	now := time.Now()
 	currentDay := now.Day()
 
+	currentMonth := int(now.Month())
+	currentMonthlyPeriod := now.Format("2006-01")
+	currentYearPeriod := now.Format("2006")
 	rows, err := s.finance.db.Query(`
-		SELECT amount FROM recurring_items 
-		WHERE is_active = 1 AND type IN ('expense', 'subscription') AND day_of_month > ?
-	`, currentDay)
+		SELECT amount, currency FROM recurring_items
+		WHERE is_active = 1 AND type IN ('expense', 'subscription') AND day_of_month >= ?
+		  AND ((frequency = 'monthly' AND (last_realized_at IS NULL OR last_realized_at != ?))
+		    OR (frequency = 'yearly' AND CAST(strftime('%m', created_at) AS INTEGER) = ? AND (last_realized_at IS NULL OR last_realized_at != ?)))
+	`, currentDay, currentMonthlyPeriod, currentMonth, currentYearPeriod)
 	if err != nil {
 		return decimal.Zero
 	}
@@ -147,9 +157,12 @@ func (s *CFOService) getRemainingRecurringExpenses(ctx context.Context) decimal.
 
 	total := decimal.Zero
 	for rows.Next() {
-		var amtStr string
-		if err := rows.Scan(&amtStr); err == nil {
+		var amtStr, currency string
+		if err := rows.Scan(&amtStr, &currency); err == nil {
 			amt, _ := decimal.NewFromString(amtStr)
+			if currency != "" && currency != "TRY" && s.finance.market != nil {
+				if fx, fxErr := s.finance.market.GetFXRate(ctx, currency, "TRY"); fxErr == nil && !fx.Rate.IsZero() { amt = amt.Mul(fx.Rate) } else { continue }
+			}
 			total = total.Add(amt)
 		}
 	}

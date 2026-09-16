@@ -20,16 +20,24 @@ type Service struct {
 
 	mu       sync.RWMutex
 	fxCache  map[string]FXRate
-	fxExpiry time.Time
+	fxExpiry map[string]time.Time
+	fxTTL    time.Duration
+	quoteTTL int
 }
 
-func NewService(db *sql.DB) *Service {
+func NewService(db *sql.DB, ttlMinutes ...int) *Service {
+	fxMinutes, quoteMinutes := 60, 30
+	if len(ttlMinutes) > 0 && ttlMinutes[0] > 0 { fxMinutes = ttlMinutes[0] }
+	if len(ttlMinutes) > 1 && ttlMinutes[1] > 0 { quoteMinutes = ttlMinutes[1] }
 	return &Service{
 		db:      db,
 		tcmb:    NewTCMBProvider(),
 		tefas:   NewTEFASProvider(),
 		yahoo:   NewYahooProvider(),
 		fxCache: make(map[string]FXRate),
+		fxExpiry: make(map[string]time.Time),
+		fxTTL: time.Duration(fxMinutes) * time.Minute,
+		quoteTTL: quoteMinutes,
 	}
 }
 
@@ -52,7 +60,7 @@ func (s *Service) GetFXRate(ctx context.Context, base, quote string) (FXRate, er
 
 	s.mu.RLock()
 	cached, ok := s.fxCache[pairKey]
-	valid := ok && time.Now().Before(s.fxExpiry)
+	valid := ok && time.Now().Before(s.fxExpiry[pairKey])
 	s.mu.RUnlock()
 
 	if valid {
@@ -64,7 +72,7 @@ func (s *Service) GetFXRate(ctx context.Context, base, quote string) (FXRate, er
 	if err == nil && !rate.Rate.IsZero() {
 		s.mu.Lock()
 		s.fxCache[pairKey] = rate
-		s.fxExpiry = time.Now().Add(60 * time.Minute) // 1 hr TTL
+		s.fxExpiry[pairKey] = time.Now().Add(s.fxTTL)
 		s.mu.Unlock()
 		return rate, nil
 	}
@@ -90,7 +98,7 @@ func (s *Service) GetFXRate(ctx context.Context, base, quote string) (FXRate, er
 			}
 			s.mu.Lock()
 			s.fxCache[pairKey] = fx
-			s.fxExpiry = time.Now().Add(30 * time.Minute)
+			s.fxExpiry[pairKey] = time.Now().Add(s.fxTTL)
 			s.mu.Unlock()
 			return fx, nil
 		}
@@ -106,7 +114,7 @@ func (s *Service) GetQuote(ctx context.Context, instrumentID int64, symbol, mark
 	assetType = strings.ToLower(strings.TrimSpace(assetType))
 
 	if ttlMinutes <= 0 {
-		ttlMinutes = 30
+		ttlMinutes = s.quoteTTL
 	}
 
 	// 1. Check DB cache first

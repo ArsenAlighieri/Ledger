@@ -40,11 +40,11 @@ func NewApp(cfg *Config) (*App, error) {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	marketSvc := market.NewService(db)
+	marketSvc := market.NewService(db, cfg.FxTTLMinutes, cfg.StockTTL)
 	financeSvc := services.NewFinanceService(db, marketSvc)
 	cfoSvc := services.NewCFOService(financeSvc)
 	snapshotSvc := services.NewSnapshotService(db, financeSvc)
-	recurringSvc := services.NewRecurringService(db)
+	recurringSvc := services.NewRecurringService(db, marketSvc)
 	mid := auth.NewMiddleware(db)
 
 	return &App{
@@ -158,6 +158,8 @@ func (a *App) Start() error {
 	// 7. Recurring routes
 	recH := handlers.NewRecurringHandler(a.db, renderer, a.recurring)
 	mux.HandleFunc("/recurring", recH.IndexView)
+	mux.HandleFunc("/recurring/create", recH.CreateAction)
+	mux.HandleFunc("/recurring/delete/", recH.DeleteAction)
 	mux.HandleFunc("/recurring/realize/", recH.RealizeAction)
 
 	// 8. Assets & Market routes
@@ -165,6 +167,12 @@ func (a *App) Start() error {
 	mux.HandleFunc("/assets", assetH.IndexView)
 	mux.HandleFunc("/assets/refresh-quotes", assetH.RefreshQuotesAction)
 	mux.HandleFunc("/market/search", assetH.SearchMarketAction)
+	mux.HandleFunc("/assets/account/create", assetH.CreateAccountAction)
+	mux.HandleFunc("/assets/account/delete/", assetH.DeleteAccountAction)
+	mux.HandleFunc("/assets/debt/create", assetH.CreateDebtAction)
+	mux.HandleFunc("/assets/debt/delete/", assetH.DeleteDebtAction)
+	mux.HandleFunc("/assets/position/create", assetH.CreatePositionAction)
+	mux.HandleFunc("/assets/position/delete/", assetH.DeletePositionAction)
 	mux.HandleFunc("/assets/edit-account/", assetH.EditAccountModal)
 	mux.HandleFunc("/assets/update-account/", assetH.UpdateAccountAction)
 	mux.HandleFunc("/assets/edit-debt/", assetH.EditDebtModal)
@@ -207,21 +215,29 @@ func (a *App) Start() error {
 
 func (a *App) startScheduler() {
 	go func() {
+		runRecurring := func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			if err := a.recurring.AutoRealizeEligible(ctx); err != nil { log.Printf("[LEDGER] Düzenli kalemler işlenemedi: %v", err) }
+		}
+		runRecurring()
+		lastDailyRun := ""
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
 
 		for range ticker.C {
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			_ = a.recurring.AutoRealizeEligible(ctx)
-			cancel()
+			runRecurring()
 
-			// Daily at 23:00, take automated backup and snapshot
+			// Run once after 23:00. Tracking the date avoids duplicate runs while
+			// allowing an app started at 23:30 to still perform the daily work.
 			now := time.Now()
-			if now.Hour() == 23 {
+			today := now.Format("2006-01-02")
+			if now.Hour() >= 23 && lastDailyRun != today {
 				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-				_ = a.snapshot.RecordDailySnapshot(ctx, "TRY")
-				_, _ = database.BackupDatabase(a.db, a.cfg.BackupDir)
+				if err := a.snapshot.RecordDailySnapshot(ctx, "TRY"); err != nil { log.Printf("[LEDGER] Günlük snapshot alınamadı: %v", err) }
+				if _, err := database.BackupDatabase(a.db, a.cfg.BackupDir); err != nil { log.Printf("[LEDGER] Günlük yedek alınamadı: %v", err) }
 				cancel()
+				lastDailyRun = today
 			}
 		}
 	}()

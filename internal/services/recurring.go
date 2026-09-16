@@ -7,16 +7,20 @@ import (
 	"time"
 
 	"ledger/internal/models"
+	"ledger/internal/market"
 
 	"github.com/shopspring/decimal"
 )
 
 type RecurringService struct {
-	db *sql.DB
+	db     *sql.DB
+	market *market.Service
 }
 
-func NewRecurringService(db *sql.DB) *RecurringService {
-	return &RecurringService{db: db}
+func NewRecurringService(db *sql.DB, marketService ...*market.Service) *RecurringService {
+	service := &RecurringService{db: db}
+	if len(marketService) > 0 { service.market = marketService[0] }
+	return service
 }
 
 // GetRecurringItems retrieves all active recurring items with their realized status for the current month.
@@ -33,7 +37,7 @@ func (s *RecurringService) GetRecurringItems(ctx context.Context) ([]models.Recu
 	}
 	defer rows.Close()
 
-	currentMonthPrefix := time.Now().Format("2006-01")
+	now := time.Now()
 
 	var items []models.RecurringItem
 	for rows.Next() {
@@ -47,7 +51,7 @@ func (s *RecurringService) GetRecurringItems(ctx context.Context) ([]models.Recu
 		if lastRealized.Valid {
 			str := lastRealized.String
 			it.LastRealizedAt = &str
-			it.IsRealizedThisMonth = (str == currentMonthPrefix)
+			it.IsRealizedThisMonth = str == realizationPeriod(it.Frequency, now)
 		}
 
 		items = append(items, it)
@@ -60,19 +64,31 @@ func (s *RecurringService) GetRecurringItems(ctx context.Context) ([]models.Recu
 func (s *RecurringService) MarkRealized(ctx context.Context, itemID int64) error {
 	var it models.RecurringItem
 	var amtStr string
-	err := s.db.QueryRow(`SELECT id, title, type, amount, day_of_month FROM recurring_items WHERE id = ?`, itemID).Scan(&it.ID, &it.Title, &it.Type, &amtStr, &it.DayOfMonth)
+	var lastRealized sql.NullString
+	err := s.db.QueryRow(`SELECT id, title, type, amount, currency, day_of_month, frequency, last_realized_at FROM recurring_items WHERE id = ? AND is_active = 1`, itemID).Scan(&it.ID, &it.Title, &it.Type, &amtStr, &it.Currency, &it.DayOfMonth, &it.Frequency, &lastRealized)
 	if err != nil {
 		return err
 	}
 	it.Amount, _ = decimal.NewFromString(amtStr)
 
 	now := time.Now()
-	currentMonthPrefix := now.Format("2006-01")
+	period := realizationPeriod(it.Frequency, now)
+	if lastRealized.Valid && lastRealized.String == period { return nil }
 	today := now.Format("2006-01-02")
 
 	txType := "expense"
 	if it.Type == "income" {
 		txType = "income"
+	}
+	transactionAmount := it.Amount
+	desc := fmt.Sprintf("Düzenli: %s", it.Title)
+	if it.Currency != "" && it.Currency != "TRY" {
+		if s.market == nil { return fmt.Errorf("%s/TRY kuru alınamadı", it.Currency) }
+		fx, fxErr := s.market.GetFXRate(ctx, it.Currency, "TRY")
+		if fxErr != nil { return fmt.Errorf("%s/TRY kuru alınamadı: %w", it.Currency, fxErr) }
+		if fx.Rate.IsZero() { return fmt.Errorf("%s/TRY kuru sıfır döndü", it.Currency) }
+		transactionAmount = it.Amount.Mul(fx.Rate)
+		desc = fmt.Sprintf("Düzenli: %s (%s %s)", it.Title, it.Amount.String(), it.Currency)
 	}
 
 	// Insert into transactions
@@ -90,14 +106,13 @@ func (s *RecurringService) MarkRealized(ctx context.Context, itemID int64) error
 	}
 
 	insertTxSQL := `INSERT INTO transactions (type, amount, category_id, date, description) VALUES (?, ?, ?, ?, ?)`
-	desc := fmt.Sprintf("Düzenli: %s", it.Title)
-	if _, err := tx.Exec(insertTxSQL, txType, it.Amount.String(), categoryID, today, desc); err != nil {
+	if _, err := tx.Exec(insertTxSQL, txType, transactionAmount.String(), categoryID, today, desc); err != nil {
 		return err
 	}
 
 	// Update last_realized_at on recurring_item
 	updateSQL := `UPDATE recurring_items SET last_realized_at = ? WHERE id = ?`
-	if _, err := tx.Exec(updateSQL, currentMonthPrefix, itemID); err != nil {
+	if _, err := tx.Exec(updateSQL, period, itemID); err != nil {
 		return err
 	}
 
@@ -108,14 +123,17 @@ func (s *RecurringService) MarkRealized(ctx context.Context, itemID int64) error
 func (s *RecurringService) AutoRealizeEligible(ctx context.Context) error {
 	now := time.Now()
 	currentMonthPrefix := now.Format("2006-01")
+	currentYear := now.Format("2006")
 	currentDay := now.Day()
+	currentMonth := int(now.Month())
 
 	rows, err := s.db.Query(`
 		SELECT id FROM recurring_items 
 		WHERE is_active = 1 AND auto_realize = 1 
 		  AND day_of_month <= ? 
-		  AND (last_realized_at IS NULL OR last_realized_at != ?)
-	`, currentDay, currentMonthPrefix)
+		  AND ((frequency = 'monthly' AND (last_realized_at IS NULL OR last_realized_at != ?))
+		    OR (frequency = 'yearly' AND CAST(strftime('%m', created_at) AS INTEGER) = ? AND (last_realized_at IS NULL OR last_realized_at != ?)))
+	`, currentDay, currentMonthPrefix, currentMonth, currentYear)
 	if err != nil {
 		return err
 	}
@@ -134,4 +152,9 @@ func (s *RecurringService) AutoRealizeEligible(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func realizationPeriod(frequency string, now time.Time) string {
+	if frequency == "yearly" { return now.Format("2006") }
+	return now.Format("2006-01")
 }
