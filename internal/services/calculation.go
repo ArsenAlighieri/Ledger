@@ -12,24 +12,24 @@ import (
 )
 
 type FinancialSummary struct {
-	TotalAssetsBase       decimal.Decimal `json:"total_assets_base"`
-	TotalDebtBase         decimal.Decimal `json:"total_debt_base"`
-	NetWorthBase          decimal.Decimal `json:"net_worth_base"`
-	CashAndBankBase       decimal.Decimal `json:"cash_and_bank_base"`
-	ForeignCurrencyBase   decimal.Decimal `json:"foreign_currency_base"`
-	InvestmentsBase       decimal.Decimal `json:"investments_base"`
-	ThisMonthIncome       decimal.Decimal `json:"this_month_income"`
-	ThisMonthExpense      decimal.Decimal `json:"this_month_expense"`
-	ThisMonthRemaining    decimal.Decimal `json:"this_month_remaining"`
-	SavingsRate           decimal.Decimal `json:"savings_rate"`
-	LastMonthExpense      decimal.Decimal `json:"last_month_expense"`
-	ExpenseChangePct      decimal.Decimal `json:"expense_change_pct"`
-	EmergencyFundCurrent  decimal.Decimal `json:"emergency_fund_current"`
-	EmergencyFundTarget   decimal.Decimal `json:"emergency_fund_target"`
-	EmergencyFundPct      decimal.Decimal `json:"emergency_fund_pct"`
-	EmergencyFundName     string          `json:"emergency_fund_name"`
-	SafeToSpend           decimal.Decimal `json:"safe_to_spend"`
-	CFOAdvice             string          `json:"cfo_advice"`
+	TotalAssetsBase      decimal.Decimal `json:"total_assets_base"`
+	TotalDebtBase        decimal.Decimal `json:"total_debt_base"`
+	NetWorthBase         decimal.Decimal `json:"net_worth_base"`
+	CashAndBankBase      decimal.Decimal `json:"cash_and_bank_base"`
+	ForeignCurrencyBase  decimal.Decimal `json:"foreign_currency_base"`
+	InvestmentsBase      decimal.Decimal `json:"investments_base"`
+	ThisMonthIncome      decimal.Decimal `json:"this_month_income"`
+	ThisMonthExpense     decimal.Decimal `json:"this_month_expense"`
+	ThisMonthRemaining   decimal.Decimal `json:"this_month_remaining"`
+	SavingsRate          decimal.Decimal `json:"savings_rate"`
+	LastMonthExpense     decimal.Decimal `json:"last_month_expense"`
+	ExpenseChangePct     decimal.Decimal `json:"expense_change_pct"`
+	EmergencyFundCurrent decimal.Decimal `json:"emergency_fund_current"`
+	EmergencyFundTarget  decimal.Decimal `json:"emergency_fund_target"`
+	EmergencyFundPct     decimal.Decimal `json:"emergency_fund_pct"`
+	EmergencyFundName    string          `json:"emergency_fund_name"`
+	SafeToSpend          decimal.Decimal `json:"safe_to_spend"`
+	CFOAdvice            string          `json:"cfo_advice"`
 }
 
 type FinanceService struct {

@@ -218,7 +218,9 @@ func (a *App) startScheduler() {
 		runRecurring := func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
-			if err := a.recurring.AutoRealizeEligible(ctx); err != nil { log.Printf("[LEDGER] Düzenli kalemler işlenemedi: %v", err) }
+			if err := a.recurring.AutoRealizeEligible(ctx); err != nil {
+				log.Printf("[LEDGER] Düzenli kalemler işlenemedi: %v", err)
+			}
 		}
 		runRecurring()
 		lastDailyRun := ""
@@ -234,8 +236,12 @@ func (a *App) startScheduler() {
 			today := now.Format("2006-01-02")
 			if now.Hour() >= 23 && lastDailyRun != today {
 				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-				if err := a.snapshot.RecordDailySnapshot(ctx, "TRY"); err != nil { log.Printf("[LEDGER] Günlük snapshot alınamadı: %v", err) }
-				if _, err := database.BackupDatabase(a.db, a.cfg.BackupDir); err != nil { log.Printf("[LEDGER] Günlük yedek alınamadı: %v", err) }
+				if err := a.snapshot.RecordDailySnapshot(ctx, "TRY"); err != nil {
+					log.Printf("[LEDGER] Günlük snapshot alınamadı: %v", err)
+				}
+				if _, err := database.BackupDatabase(a.db, a.cfg.BackupDir); err != nil {
+					log.Printf("[LEDGER] Günlük yedek alınamadı: %v", err)
+				}
 				cancel()
 				lastDailyRun = today
 			}

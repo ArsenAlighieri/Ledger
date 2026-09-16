@@ -27,16 +27,20 @@ type Service struct {
 
 func NewService(db *sql.DB, ttlMinutes ...int) *Service {
 	fxMinutes, quoteMinutes := 60, 30
-	if len(ttlMinutes) > 0 && ttlMinutes[0] > 0 { fxMinutes = ttlMinutes[0] }
-	if len(ttlMinutes) > 1 && ttlMinutes[1] > 0 { quoteMinutes = ttlMinutes[1] }
+	if len(ttlMinutes) > 0 && ttlMinutes[0] > 0 {
+		fxMinutes = ttlMinutes[0]
+	}
+	if len(ttlMinutes) > 1 && ttlMinutes[1] > 0 {
+		quoteMinutes = ttlMinutes[1]
+	}
 	return &Service{
-		db:      db,
-		tcmb:    NewTCMBProvider(),
-		tefas:   NewTEFASProvider(),
-		yahoo:   NewYahooProvider(),
-		fxCache: make(map[string]FXRate),
+		db:       db,
+		tcmb:     NewTCMBProvider(),
+		tefas:    NewTEFASProvider(),
+		yahoo:    NewYahooProvider(),
+		fxCache:  make(map[string]FXRate),
 		fxExpiry: make(map[string]time.Time),
-		fxTTL: time.Duration(fxMinutes) * time.Minute,
+		fxTTL:    time.Duration(fxMinutes) * time.Minute,
 		quoteTTL: quoteMinutes,
 	}
 }

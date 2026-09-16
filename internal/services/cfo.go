@@ -161,7 +161,11 @@ func (s *CFOService) getRemainingRecurringExpenses(ctx context.Context) decimal.
 		if err := rows.Scan(&amtStr, &currency); err == nil {
 			amt, _ := decimal.NewFromString(amtStr)
 			if currency != "" && currency != "TRY" && s.finance.market != nil {
-				if fx, fxErr := s.finance.market.GetFXRate(ctx, currency, "TRY"); fxErr == nil && !fx.Rate.IsZero() { amt = amt.Mul(fx.Rate) } else { continue }
+				if fx, fxErr := s.finance.market.GetFXRate(ctx, currency, "TRY"); fxErr == nil && !fx.Rate.IsZero() {
+					amt = amt.Mul(fx.Rate)
+				} else {
+					continue
+				}
 			}
 			total = total.Add(amt)
 		}

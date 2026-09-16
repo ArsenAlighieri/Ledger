@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -73,7 +74,9 @@ func (h *AssetsHandler) IndexView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AssetsHandler) RefreshQuotesAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	ctx := r.Context()
 
 	// Invalidate DB quotes and re-fetch for all active positions
@@ -95,7 +98,9 @@ func (h *AssetsHandler) SearchMarketAction(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *AssetsHandler) CreateAccountAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	name := CleanString(r.FormValue("name"))
 	institution := CleanString(r.FormValue("institution"))
 	accountType := CleanString(r.FormValue("account_type"))
@@ -104,7 +109,9 @@ func (h *AssetsHandler) CreateAccountAction(w http.ResponseWriter, r *http.Reque
 	if accountType != "cash" && accountType != "foreign_currency" {
 		accountType = "bank"
 	}
-	if currency == "" { currency = "TRY" }
+	if currency == "" {
+		currency = "TRY"
+	}
 	if name != "" && validNonNegativeDecimal(balance) {
 		_, _ = h.db.Exec(`INSERT INTO accounts (name, institution, account_type, currency, balance) VALUES (?, ?, ?, ?, ?)`, name, institution, accountType, currency, balance)
 	}
@@ -112,7 +119,9 @@ func (h *AssetsHandler) CreateAccountAction(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *AssetsHandler) DeleteAccountAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	id := pathID(r.URL.Path)
 	if id != "" {
 		// Archive accounts so historical transactions keep their account relation.
@@ -123,16 +132,24 @@ func (h *AssetsHandler) DeleteAccountAction(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *AssetsHandler) CreateDebtAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	name := CleanString(r.FormValue("name"))
 	debtType := CleanString(r.FormValue("debt_type"))
 	bank := CleanString(r.FormValue("bank"))
 	current := CleanString(r.FormValue("current_debt"))
 	statement := CleanString(r.FormValue("statement_debt"))
 	dueDay, _ := strconv.Atoi(r.FormValue("due_day"))
-	if debtType != "loan" && debtType != "other" { debtType = "credit_card" }
-	if statement == "" { statement = "0" }
-	if dueDay < 0 || dueDay > 31 { dueDay = 0 }
+	if debtType != "loan" && debtType != "other" {
+		debtType = "credit_card"
+	}
+	if statement == "" {
+		statement = "0"
+	}
+	if dueDay < 0 || dueDay > 31 {
+		dueDay = 0
+	}
 	if name != "" && validNonNegativeDecimal(current) && validNonNegativeDecimal(statement) {
 		_, _ = h.db.Exec(`INSERT INTO debts (name, debt_type, bank, current_debt, statement_debt, due_day) VALUES (?, ?, ?, ?, ?, ?)`, name, debtType, bank, current, statement, dueDay)
 	}
@@ -140,13 +157,19 @@ func (h *AssetsHandler) CreateDebtAction(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AssetsHandler) DeleteDebtAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
-	if id := pathID(r.URL.Path); id != "" { _, _ = h.db.Exec(`DELETE FROM debts WHERE id = ?`, id) }
+	if !requirePost(w, r) {
+		return
+	}
+	if id := pathID(r.URL.Path); id != "" {
+		_, _ = h.db.Exec(`DELETE FROM debts WHERE id = ?`, id)
+	}
 	h.redirectAssets(w, r)
 }
 
 func (h *AssetsHandler) CreatePositionAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	symbol := strings.ToUpper(CleanString(r.FormValue("symbol")))
 	name := CleanString(r.FormValue("name"))
 	marketName := strings.ToUpper(CleanString(r.FormValue("market")))
@@ -155,12 +178,24 @@ func (h *AssetsHandler) CreatePositionAction(w http.ResponseWriter, r *http.Requ
 	quantity := CleanString(r.FormValue("quantity"))
 	averageCost := CleanString(r.FormValue("average_cost"))
 	manualPrice := CleanString(r.FormValue("manual_price"))
-	if currency == "" { currency = "TRY" }
-	if name == "" { name = symbol }
-	if assetType == "" { assetType = "other" }
-	if marketName == "" { marketName = "OTHER" }
-	if averageCost == "" { averageCost = "0" }
-	if manualPrice == "" { manualPrice = "0" }
+	if currency == "" {
+		currency = "TRY"
+	}
+	if name == "" {
+		name = symbol
+	}
+	if assetType == "" {
+		assetType = "other"
+	}
+	if marketName == "" {
+		marketName = "OTHER"
+	}
+	if averageCost == "" {
+		averageCost = "0"
+	}
+	if manualPrice == "" {
+		manualPrice = "0"
+	}
 	if symbol != "" && validPositiveDecimal(quantity) && validNonNegativeDecimal(averageCost) && validNonNegativeDecimal(manualPrice) {
 		isManual := marketName == "OTHER" || r.FormValue("is_manual") == "1"
 		tx, err := h.db.Begin()
@@ -171,14 +206,19 @@ func (h *AssetsHandler) CreatePositionAction(w http.ResponseWriter, r *http.Requ
 		defer tx.Rollback()
 		var instrumentID int64
 		err = tx.QueryRow(`SELECT id FROM instruments WHERE symbol = ?`, symbol).Scan(&instrumentID)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			res, insertErr := tx.Exec(`INSERT INTO instruments (symbol, name, asset_type, market, currency, provider, is_manual, manual_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, symbol, name, assetType, marketName, currency, marketName, isManual, manualPrice)
-			if insertErr == nil { instrumentID, _ = res.LastInsertId() } else { err = insertErr }
+			err = insertErr
+			if err == nil {
+				instrumentID, _ = res.LastInsertId()
+			}
 		}
 		if err == nil {
 			_, err = tx.Exec(`INSERT INTO positions (instrument_id, quantity, average_cost) VALUES (?, ?, ?) ON CONFLICT(instrument_id) DO UPDATE SET quantity = excluded.quantity, average_cost = excluded.average_cost, updated_at = CURRENT_TIMESTAMP`, instrumentID, quantity, averageCost)
 		}
-		if err == nil { err = tx.Commit() }
+		if err == nil {
+			err = tx.Commit()
+		}
 		if err != nil {
 			http.Error(w, "Yatırım eklenemedi: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -188,7 +228,9 @@ func (h *AssetsHandler) CreatePositionAction(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *AssetsHandler) DeletePositionAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	id := pathID(r.URL.Path)
 	if id != "" {
 		_, _ = h.db.Exec(`DELETE FROM positions WHERE id = ?`, id)
@@ -209,8 +251,12 @@ func validPositiveDecimal(value string) bool {
 
 func pathID(path string) string {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
-	if len(parts) == 0 { return "" }
-	if _, err := strconv.ParseInt(parts[len(parts)-1], 10, 64); err != nil { return "" }
+	if len(parts) == 0 {
+		return ""
+	}
+	if _, err := strconv.ParseInt(parts[len(parts)-1], 10, 64); err != nil {
+		return ""
+	}
 	return parts[len(parts)-1]
 }
 
@@ -218,10 +264,14 @@ func (h *AssetsHandler) clearEmergencyBinding(assetType, id string) {
 	_, _ = h.db.Exec(`UPDATE settings SET emergency_fund_asset_type = '', emergency_fund_asset_id = 0 WHERE emergency_fund_asset_type = ? AND emergency_fund_asset_id = ?`, assetType, id)
 }
 
-func (h *AssetsHandler) redirectAssets(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/assets", http.StatusFound) }
+func (h *AssetsHandler) redirectAssets(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/assets", http.StatusFound)
+}
 
 func requirePost(w http.ResponseWriter, r *http.Request) bool {
-	if r.Method == http.MethodPost { return true }
+	if r.Method == http.MethodPost {
+		return true
+	}
 	w.Header().Set("Allow", http.MethodPost)
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	return false
@@ -254,7 +304,9 @@ func (h *AssetsHandler) EditAccountModal(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AssetsHandler) UpdateAccountAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
 		http.NotFound(w, r)
@@ -297,7 +349,9 @@ func (h *AssetsHandler) EditDebtModal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AssetsHandler) UpdateDebtAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
 		http.NotFound(w, r)
@@ -353,7 +407,9 @@ func (h *AssetsHandler) EditPositionModal(w http.ResponseWriter, r *http.Request
 }
 
 func (h *AssetsHandler) UpdatePositionAction(w http.ResponseWriter, r *http.Request) {
-	if !requirePost(w, r) { return }
+	if !requirePost(w, r) {
+		return
+	}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
 		http.NotFound(w, r)

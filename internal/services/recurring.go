@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"ledger/internal/models"
 	"ledger/internal/market"
+	"ledger/internal/models"
 
 	"github.com/shopspring/decimal"
 )
@@ -19,7 +19,9 @@ type RecurringService struct {
 
 func NewRecurringService(db *sql.DB, marketService ...*market.Service) *RecurringService {
 	service := &RecurringService{db: db}
-	if len(marketService) > 0 { service.market = marketService[0] }
+	if len(marketService) > 0 {
+		service.market = marketService[0]
+	}
 	return service
 }
 
@@ -73,7 +75,9 @@ func (s *RecurringService) MarkRealized(ctx context.Context, itemID int64) error
 
 	now := time.Now()
 	period := realizationPeriod(it.Frequency, now)
-	if lastRealized.Valid && lastRealized.String == period { return nil }
+	if lastRealized.Valid && lastRealized.String == period {
+		return nil
+	}
 	today := now.Format("2006-01-02")
 
 	txType := "expense"
@@ -83,10 +87,16 @@ func (s *RecurringService) MarkRealized(ctx context.Context, itemID int64) error
 	transactionAmount := it.Amount
 	desc := fmt.Sprintf("Düzenli: %s", it.Title)
 	if it.Currency != "" && it.Currency != "TRY" {
-		if s.market == nil { return fmt.Errorf("%s/TRY kuru alınamadı", it.Currency) }
+		if s.market == nil {
+			return fmt.Errorf("%s/TRY kuru alınamadı", it.Currency)
+		}
 		fx, fxErr := s.market.GetFXRate(ctx, it.Currency, "TRY")
-		if fxErr != nil { return fmt.Errorf("%s/TRY kuru alınamadı: %w", it.Currency, fxErr) }
-		if fx.Rate.IsZero() { return fmt.Errorf("%s/TRY kuru sıfır döndü", it.Currency) }
+		if fxErr != nil {
+			return fmt.Errorf("%s/TRY kuru alınamadı: %w", it.Currency, fxErr)
+		}
+		if fx.Rate.IsZero() {
+			return fmt.Errorf("%s/TRY kuru sıfır döndü", it.Currency)
+		}
 		transactionAmount = it.Amount.Mul(fx.Rate)
 		desc = fmt.Sprintf("Düzenli: %s (%s %s)", it.Title, it.Amount.String(), it.Currency)
 	}
@@ -155,6 +165,8 @@ func (s *RecurringService) AutoRealizeEligible(ctx context.Context) error {
 }
 
 func realizationPeriod(frequency string, now time.Time) string {
-	if frequency == "yearly" { return now.Format("2006") }
+	if frequency == "yearly" {
+		return now.Format("2006")
+	}
 	return now.Format("2006-01")
 }
