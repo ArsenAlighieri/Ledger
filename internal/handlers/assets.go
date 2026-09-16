@@ -164,18 +164,24 @@ func (h *AssetsHandler) CreatePositionAction(w http.ResponseWriter, r *http.Requ
 	if symbol != "" && validPositiveDecimal(quantity) && validNonNegativeDecimal(averageCost) && validNonNegativeDecimal(manualPrice) {
 		isManual := marketName == "OTHER" || r.FormValue("is_manual") == "1"
 		tx, err := h.db.Begin()
+		if err != nil {
+			http.Error(w, "Yatırım eklenemedi: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+		var instrumentID int64
+		err = tx.QueryRow(`SELECT id FROM instruments WHERE symbol = ?`, symbol).Scan(&instrumentID)
+		if err == sql.ErrNoRows {
+			res, insertErr := tx.Exec(`INSERT INTO instruments (symbol, name, asset_type, market, currency, provider, is_manual, manual_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, symbol, name, assetType, marketName, currency, marketName, isManual, manualPrice)
+			if insertErr == nil { instrumentID, _ = res.LastInsertId() } else { err = insertErr }
+		}
 		if err == nil {
-			defer tx.Rollback()
-			var instrumentID int64
-			err = tx.QueryRow(`SELECT id FROM instruments WHERE symbol = ?`, symbol).Scan(&instrumentID)
-			if err == sql.ErrNoRows {
-				res, insertErr := tx.Exec(`INSERT INTO instruments (symbol, name, asset_type, market, currency, provider, is_manual, manual_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, symbol, name, assetType, marketName, currency, marketName, isManual, manualPrice)
-				if insertErr == nil { instrumentID, _ = res.LastInsertId() } else { err = insertErr }
-			}
-			if err == nil {
-				_, err = tx.Exec(`INSERT INTO positions (instrument_id, quantity, average_cost) VALUES (?, ?, ?) ON CONFLICT(instrument_id) DO UPDATE SET quantity = excluded.quantity, average_cost = excluded.average_cost, updated_at = CURRENT_TIMESTAMP`, instrumentID, quantity, averageCost)
-			}
-			if err == nil { _ = tx.Commit() }
+			_, err = tx.Exec(`INSERT INTO positions (instrument_id, quantity, average_cost) VALUES (?, ?, ?) ON CONFLICT(instrument_id) DO UPDATE SET quantity = excluded.quantity, average_cost = excluded.average_cost, updated_at = CURRENT_TIMESTAMP`, instrumentID, quantity, averageCost)
+		}
+		if err == nil { err = tx.Commit() }
+		if err != nil {
+			http.Error(w, "Yatırım eklenemedi: "+err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 	h.redirectAssets(w, r)
