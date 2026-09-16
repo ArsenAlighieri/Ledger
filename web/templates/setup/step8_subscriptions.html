@@ -1,0 +1,79 @@
+{{define "step_content"}}
+<div>
+  <h2 class="text-xl font-bold text-white mb-2">Abonelikler</h2>
+  <p class="text-sm text-slate-400 mb-6">Kullandığın dijital servisleri ve abonelikleri seç. Kullanmadıklarını boş bırakabilirsin.</p>
+
+  <form action="/setup/subscription/save" method="POST" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-1">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="step" value="8">
+
+    <!-- Netflix -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="sub_netflix_enabled" id="sub_netflix" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="sub_netflix" class="font-medium text-white cursor-pointer">Netflix</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="sub_netflix_amount" placeholder="299" step="1" class="w-24 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">TL / ay</span>
+      </div>
+    </div>
+
+    <!-- Spotify -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="sub_spotify_enabled" id="sub_spotify" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="sub_spotify" class="font-medium text-white cursor-pointer">Spotify</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="sub_spotify_amount" placeholder="60" step="1" class="w-24 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">TL / ay</span>
+      </div>
+    </div>
+
+    <!-- YouTube Premium -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="sub_youtube_enabled" id="sub_youtube" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="sub_youtube" class="font-medium text-white cursor-pointer">YouTube Premium</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="sub_youtube_amount" placeholder="80" step="1" class="w-24 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">TL / ay</span>
+      </div>
+    </div>
+
+    <!-- ChatGPT Plus -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="sub_chatgpt_enabled" id="sub_chatgpt" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="sub_chatgpt" class="font-medium text-white cursor-pointer">ChatGPT Plus</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="sub_chatgpt_amount" placeholder="950" step="10" class="w-24 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">TL / ay</span>
+      </div>
+    </div>
+
+    <!-- Amazon Prime -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="sub_prime_enabled" id="sub_prime" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="sub_prime" class="font-medium text-white cursor-pointer">Amazon Prime</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="sub_prime_amount" placeholder="39" step="1" class="w-24 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">TL / ay</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between pt-6 border-t border-dark-border mt-6">
+      <a href="/setup?step=7" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">← Geri</a>
+      <div class="flex items-center gap-3">
+        <button type="submit" name="action" value="skip" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">Şimdilik Geç</button>
+        <button type="submit" name="action" value="save" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md active:scale-95">Devam Et →</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}

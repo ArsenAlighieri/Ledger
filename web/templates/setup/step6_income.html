@@ -1,0 +1,75 @@
+{{define "step_content"}}
+<div>
+  <h2 class="text-xl font-bold text-white mb-2">Düzenli Gelirler</h2>
+  <p class="text-sm text-slate-400 mb-6">Her ay düzenli veya öngörülebilir gelirlerin var mı? Bir kez kaydet, her ay tekrar girmek zorunda kalma.</p>
+
+  <form action="/setup/income/save" method="POST" class="space-y-4 mb-6">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="step" value="6">
+
+    <!-- Maaş -->
+    <div class="p-4 rounded-xl bg-dark-bg/60 border border-dark-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="income_maas_enabled" id="inc_maas" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="inc_maas" class="text-sm font-semibold text-white cursor-pointer">Maaş</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="income_maas_amount" placeholder="Tutar (TL)" step="100" class="w-32 rounded-lg border border-dark-border bg-dark-input px-3 py-1.5 text-white placeholder-slate-600 text-sm">
+        <span class="text-xs text-slate-400">Ayın</span>
+        <input type="number" name="income_maas_day" placeholder="1" min="1" max="31" value="1" class="w-16 rounded-lg border border-dark-border bg-dark-input px-2 py-1.5 text-white text-sm text-center">
+        <span class="text-xs text-slate-400">. günü</span>
+      </div>
+    </div>
+
+    <!-- Burs -->
+    <div class="p-4 rounded-xl bg-dark-bg/60 border border-dark-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="income_burs_enabled" id="inc_burs" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="inc_burs" class="text-sm font-semibold text-white cursor-pointer">Burs</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="income_burs_amount" placeholder="Tutar (TL)" step="100" class="w-32 rounded-lg border border-dark-border bg-dark-input px-3 py-1.5 text-white placeholder-slate-600 text-sm">
+        <span class="text-xs text-slate-400">Ayın</span>
+        <input type="number" name="income_burs_day" placeholder="15" min="1" max="31" value="15" class="w-16 rounded-lg border border-dark-border bg-dark-input px-2 py-1.5 text-white text-sm text-center">
+        <span class="text-xs text-slate-400">. günü</span>
+      </div>
+    </div>
+
+    <!-- Freelance -->
+    <div class="p-4 rounded-xl bg-dark-bg/60 border border-dark-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="income_freelance_enabled" id="inc_free" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="inc_free" class="text-sm font-semibold text-white cursor-pointer">Freelance / Yan Gelir</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="income_freelance_amount" placeholder="Tutar (TL)" step="100" class="w-32 rounded-lg border border-dark-border bg-dark-input px-3 py-1.5 text-white placeholder-slate-600 text-sm">
+        <span class="text-xs text-slate-400">Ayın</span>
+        <input type="number" name="income_freelance_day" placeholder="20" min="1" max="31" value="20" class="w-16 rounded-lg border border-dark-border bg-dark-input px-2 py-1.5 text-white text-sm text-center">
+        <span class="text-xs text-slate-400">. günü</span>
+      </div>
+    </div>
+
+    <!-- Aile Desteği -->
+    <div class="p-4 rounded-xl bg-dark-bg/60 border border-dark-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="income_aile_enabled" id="inc_aile" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="inc_aile" class="text-sm font-semibold text-white cursor-pointer">Aile Desteği</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="income_aile_amount" placeholder="Tutar (TL)" step="100" class="w-32 rounded-lg border border-dark-border bg-dark-input px-3 py-1.5 text-white placeholder-slate-600 text-sm">
+        <span class="text-xs text-slate-400">Ayın</span>
+        <input type="number" name="income_aile_day" placeholder="1" min="1" max="31" value="1" class="w-16 rounded-lg border border-dark-border bg-dark-input px-2 py-1.5 text-white text-sm text-center">
+        <span class="text-xs text-slate-400">. günü</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between pt-6 border-t border-dark-border mt-6">
+      <a href="/setup?step=5" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">← Geri</a>
+      <div class="flex items-center gap-3">
+        <button type="submit" name="action" value="skip" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">Şimdilik Geç</button>
+        <button type="submit" name="action" value="save" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md active:scale-95">Devam Et →</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}

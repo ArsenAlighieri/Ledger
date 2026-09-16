@@ -1,0 +1,10 @@
+/* Tailwind Custom Base Styles for LEDGER */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #090d16;
+  color: #f1f5f9;
+}

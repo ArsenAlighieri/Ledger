@@ -1,0 +1,19 @@
+{{define "content"}}
+<div class="max-w-xl mx-auto py-4">
+  <!-- Progress Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 tracking-wider uppercase">
+      <span>Kurulum Sihirbazı</span>
+      <span>Adım {{.Step}} / 11</span>
+    </div>
+    <div class="w-full bg-dark-card border border-dark-border h-2 rounded-full overflow-hidden">
+      <div class="bg-emerald-500 h-full transition-all duration-300 rounded-full" style="width: {{.ProgressPct}}%;"></div>
+    </div>
+  </div>
+
+  <!-- Wizard Content Card -->
+  <div class="bg-dark-card border border-dark-border rounded-2xl p-6 sm:p-8 shadow-xl">
+    {{template "step_content" .}}
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,21 @@
+{{if .Results}}
+<div class="p-1 space-y-1">
+  {{range .Results}}
+  <div onclick="selectInstrument('{{.Symbol}}', '{{.Name}}', '{{.Market}}', '{{.AssetType}}', '{{.Currency}}')"
+       class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer transition flex items-center justify-between text-xs">
+    <div>
+      <span class="font-bold text-emerald-400 font-mono">{{.Symbol}}</span>
+      <span class="text-slate-300 ml-2 font-medium">{{.Name}}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-dark-bg text-slate-400 border border-dark-border">{{.Market}}</span>
+      <span class="text-[10px] font-mono text-slate-500">{{.Currency}}</span>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div class="p-3 text-center text-xs text-slate-500">
+  Sonuç bulunamadı. Kendi sembolünü manuel olarak yazıp devam edebilirsin.
+</div>
+{{end}}

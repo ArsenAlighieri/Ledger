@@ -1,0 +1,97 @@
+{{define "step_content"}}
+<div>
+  <h2 class="text-xl font-bold text-white mb-2">Düzenli Giderler</h2>
+  <p class="text-sm text-slate-400 mb-6">Her ay tekrarlanan sabit masraflarını seç. Ledger her ay otomatik beklenen gider olarak ekler.</p>
+
+  <form action="/setup/expense/save" method="POST" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-1">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="step" value="7">
+
+    <!-- Kira -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_kira_enabled" id="exp_kira" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_kira" class="font-medium text-white cursor-pointer">Ev Kirası</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_kira_amount" placeholder="21000" step="50" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_kira_day" value="1" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <!-- Aidat -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_aidat_enabled" id="exp_aidat" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_aidat" class="font-medium text-white cursor-pointer">Bina / Site Aidatı</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_aidat_amount" placeholder="750" step="10" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_aidat_day" value="5" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <!-- Elektrik & Su & Doğalgaz -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_faturalar_enabled" id="exp_faturalar" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_faturalar" class="font-medium text-white cursor-pointer">Faturalar (Elektrik, Su, Gaz)</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_faturalar_amount" placeholder="1500" step="50" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_faturalar_day" value="15" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <!-- İnternet -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_internet_enabled" id="exp_internet" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_internet" class="font-medium text-white cursor-pointer">Ev İnterneti</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_internet_amount" placeholder="450" step="10" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_internet_day" value="10" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <!-- Telefon -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_telefon_enabled" id="exp_telefon" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_telefon" class="font-medium text-white cursor-pointer">Cep Telefonu Faturası</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_telefon_amount" placeholder="350" step="10" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_telefon_day" value="18" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <!-- Market / Mutfak -->
+    <div class="p-3 rounded-xl bg-dark-bg/60 border border-dark-border flex items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="exp_market_enabled" id="exp_market" value="1" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 bg-dark-input border-dark-border">
+        <label for="exp_market" class="font-medium text-white cursor-pointer">Tahmini Aylık Market / Yemek</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="number" name="exp_market_amount" placeholder="8000" step="100" class="w-28 rounded-lg border border-dark-border bg-dark-input px-2.5 py-1 text-white text-xs">
+        <span class="text-xs text-slate-500">Gün:</span>
+        <input type="number" name="exp_market_day" value="1" min="1" max="31" class="w-12 rounded-lg border border-dark-border bg-dark-input px-1.5 py-1 text-white text-xs text-center">
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between pt-6 border-t border-dark-border mt-6">
+      <a href="/setup?step=6" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">← Geri</a>
+      <div class="flex items-center gap-3">
+        <button type="submit" name="action" value="skip" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">Şimdilik Geç</button>
+        <button type="submit" name="action" value="save" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md active:scale-95">Devam Et →</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}

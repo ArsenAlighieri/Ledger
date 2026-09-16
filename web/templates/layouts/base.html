@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{{if .Title}}{{.Title}} — {{end}}Ledger</title>
+  
+  <!-- PWA Metadata -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            dark: {
+              bg: '#090d16',
+              card: '#111827',
+              border: '#1f293d',
+              input: '#0d1322',
+              hover: '#1b253b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- HTMX -->
+  <script src="/static/js/htmx.min.js"></script>
+
+  <style>
+    /* Clean custom scrollbars & base typography */
+    body {
+      background-color: #090d16;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .htmx-indicator {
+      opacity: 0;
+      transition: opacity 200ms ease-in;
+    }
+    .htmx-request .htmx-indicator {
+      opacity: 1;
+    }
+    .htmx-request.htmx-indicator {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white" hx-headers='{"X-CSRF-Token": "{{.CSRFToken}}"}'>
+
+  {{if .ShowNav}}
+    {{template "nav.html" .}}
+  {{end}}
+
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 pb-24 md:pb-12">
+    {{template "content" .}}
+  </main>
+
+  <!-- Fast Action Floating Button for Mobile (Bottom Right) -->
+  {{if .ShowNav}}
+  <div class="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40">
+    <button hx-get="/transactions/new" hx-target="#modal-container" hx-swap="innerHTML"
+            class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-3 rounded-full shadow-lg shadow-emerald-950 transition active:scale-95 text-sm tracking-wide">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      <span>+ İŞLEM</span>
+    </button>
+  </div>
+  {{end}}
+
+  <!-- Modal Target -->
+  <div id="modal-container"></div>
+
+  <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+      });
+    }
+
+    function closeModal() {
+      const container = document.getElementById('modal-container');
+      if (container) container.innerHTML = '';
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+services:
+  ledger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ledger
+    restart: unless-stopped
+    ports:
+      - "${ZEROTIER_IP:-127.0.0.1}:8085:8085"
+    environment:
+      - APP_PORT=8085
+      - DB_PATH=/app/data/ledger.db
+      - BACKUP_DIR=/app/data/backups
+      - FX_TTL_MINUTES=60
+      - STOCK_TTL_MINUTES=30
+      - TZ=Europe/Istanbul
+    volumes:
+      - ./data:/app/data

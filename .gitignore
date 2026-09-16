@@ -1,0 +1,10 @@
+.env
+data/
+*.db
+*.db-wal
+*.db-shm
+*.exe
+bin/
+tmp/
+scratch/
+.DS_Store

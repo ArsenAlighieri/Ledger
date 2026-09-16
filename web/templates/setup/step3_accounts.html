@@ -1,0 +1,77 @@
+{{define "step_content"}}
+<div>
+  <h2 class="text-xl font-bold text-white mb-2">Banka Hesapları ve Nakit</h2>
+  <p class="text-sm text-slate-400 mb-6">Banka hesaplarında veya nakit olarak ne kadar paran var?</p>
+
+  <!-- Existing Added Accounts List -->
+  {{if .Accounts}}
+  <div class="mb-6 space-y-2">
+    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Eklenen Hesaplar</div>
+    {{range .Accounts}}
+    <div class="flex items-center justify-between p-3 rounded-xl bg-dark-bg border border-dark-border text-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400">
+          {{if eq .AccountType "cash"}}💵{{else}}🏦{{end}}
+        </div>
+        <div>
+          <div class="font-medium text-white">{{.Name}}</div>
+          <div class="text-xs text-slate-400">{{.Institution}}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="font-semibold text-emerald-400">{{.Balance}} {{.Currency}}</span>
+        <button hx-delete="/setup/account/{{.ID}}" hx-target="#step-container" class="text-slate-500 hover:text-red-400 text-xs">Sil</button>
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+
+  <!-- Quick Add Account Form -->
+  <form action="/setup/account/add" method="POST" class="p-4 rounded-xl bg-dark-bg/60 border border-dark-border space-y-4 mb-6">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">Hesap Adı</label>
+        <input type="text" name="name" placeholder="Örn: Ziraat Vadesiz" required
+               class="w-full rounded-lg border border-dark-border bg-dark-input px-3 py-2 text-white placeholder-slate-600 focus:border-emerald-500 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">Kurum / Banka</label>
+        <input type="text" name="institution" placeholder="Örn: Ziraat"
+               class="w-full rounded-lg border border-dark-border bg-dark-input px-3 py-2 text-white placeholder-slate-600 focus:border-emerald-500 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">Bakiye (TL)</label>
+        <input type="number" name="balance" placeholder="15000" step="0.01" required
+               class="w-full rounded-lg border border-dark-border bg-dark-input px-3 py-2 text-white placeholder-slate-600 focus:border-emerald-500 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">Tür</label>
+        <select name="account_type" class="w-full rounded-lg border border-dark-border bg-dark-input px-3 py-2 text-white focus:border-emerald-500 text-sm">
+          <option value="bank">Banka Hesabı</option>
+          <option value="cash">Nakit Para</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="w-full py-2 bg-dark-hover hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition">
+      + HESAP EKLE
+    </button>
+  </form>
+
+  <form action="/setup/next" method="POST">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="step" value="3">
+
+    <div class="flex items-center justify-between pt-6 border-t border-dark-border mt-6">
+      <a href="/setup?step=2" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">← Geri</a>
+      <div class="flex items-center gap-3">
+        <button type="submit" name="action" value="skip" class="text-xs font-medium text-slate-400 hover:text-white px-3 py-2">Şimdilik Geç</button>
+        <button type="submit" name="action" value="save" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md active:scale-95">Devam Et →</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}

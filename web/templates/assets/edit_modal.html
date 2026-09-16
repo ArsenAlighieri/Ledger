@@ -1,0 +1,55 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onclick="if(event.target === this) closeModal()">
+  <div class="bg-dark-card border border-dark-border w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5" onclick="event.stopPropagation()">
+    
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-bold text-white tracking-wide">{{.Title}}</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+    </div>
+
+    <form action="{{.ActionURL}}" method="POST" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      {{if eq .Type "account"}}
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Güncel Bakiye ({{.Account.Currency}})</label>
+        <input type="number" name="balance" value="{{.Account.Balance}}" step="any" required autofocus
+               class="w-full text-xl font-bold rounded-xl border border-dark-border bg-dark-input px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
+      </div>
+      {{end}}
+
+      {{if eq .Type "position"}}
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Adet / Pay Miktarı</label>
+        <input type="number" name="quantity" value="{{.Position.Quantity}}" step="any" required autofocus
+               class="w-full text-xl font-bold rounded-xl border border-dark-border bg-dark-input px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Ortalama Maliyet (İsteğe Bağlı)</label>
+        <input type="number" name="average_cost" value="{{.Position.AverageCost}}" step="any"
+               class="w-full rounded-xl border border-dark-border bg-dark-input px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none text-sm">
+      </div>
+      {{end}}
+
+      {{if eq .Type "debt"}}
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Güncel Toplam Borç (TL)</label>
+        <input type="number" name="current_debt" value="{{.Debt.CurrentDebt}}" step="any" required autofocus
+               class="w-full text-xl font-bold rounded-xl border border-dark-border bg-dark-input px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Kalan Ekstre Borcu (TL)</label>
+        <input type="number" name="statement_debt" value="{{.Debt.StatementDebt}}" step="any"
+               class="w-full rounded-xl border border-dark-border bg-dark-input px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none text-sm">
+      </div>
+      {{end}}
+
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" onclick="closeModal()" class="text-xs text-slate-400 hover:text-white px-3 py-2">İptal</button>
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow transition active:scale-95">
+          Kaydet
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
