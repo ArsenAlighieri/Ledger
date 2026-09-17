@@ -101,9 +101,10 @@ func (p *TEFASProvider) GetFundQuote(ctx context.Context, fundCode string) (Quot
 		return Quote{}, "", fmt.Errorf("no data returned for TEFAS fund %s", fundCode)
 	}
 
-	// First item is usually the most recent
-	item := data.ResultList[0]
-	if item.Fiyat == nil || *item.Fiyat <= 0 {
+	// TEFAS may publish today's row with a temporary zero price before the
+	// official value is available. Use the newest row that has a real price.
+	item, ok := latestValidTEFASItem(data.ResultList)
+	if !ok {
 		return Quote{}, "", fmt.Errorf("invalid price for TEFAS fund %s", fundCode)
 	}
 
@@ -120,6 +121,15 @@ func (p *TEFASProvider) GetFundQuote(ctx context.Context, fundCode string) (Quot
 		Provider: "TEFAS",
 		IsStale:  false,
 	}, item.FonUnvan, nil
+}
+
+func latestValidTEFASItem(items []tefasItem) (tefasItem, bool) {
+	for _, item := range items {
+		if item.Fiyat != nil && *item.Fiyat > 0 {
+			return item, true
+		}
+	}
+	return tefasItem{}, false
 }
 
 func (p *TEFASProvider) SearchFunds(ctx context.Context, query string) ([]SearchResult, error) {

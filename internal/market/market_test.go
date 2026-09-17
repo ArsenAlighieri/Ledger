@@ -83,3 +83,20 @@ func TestMarketCacheAndFallback(t *testing.T) {
 		t.Errorf("expected fallback quote to be flagged as stale")
 	}
 }
+
+func TestLatestValidTEFASItem_SkipsZeroPricePlaceholder(t *testing.T) {
+	zero := 0.0
+	valid := 2.243343
+	items := []tefasItem{
+		{FonKodu: "TP2", Tarih: "2026-09-17", Fiyat: &zero},
+		{FonKodu: "TP2", Tarih: "2026-09-16", Fiyat: &valid},
+	}
+
+	item, ok := latestValidTEFASItem(items)
+	if !ok {
+		t.Fatal("expected a valid historical price")
+	}
+	if item.Tarih != "2026-09-16" || item.Fiyat == nil || *item.Fiyat != valid {
+		t.Fatalf("expected 2026-09-16 price %f, got %#v", valid, item)
+	}
+}
